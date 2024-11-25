@@ -46,15 +46,16 @@ struct eat_assign
 #define DETAIL_STRICT_ENUM_ALWAYS_INLINE [[gnu::always_inline]] inline
 #endif
 
-#define STRICT_ENUM(NAME)                             \
+#define STRICT_ENUM(NAME, ...)                        \
 struct NAME                                           \
 {                                                     \
     constexpr NAME() noexcept = default;              \
     constexpr NAME(auto&& v) noexcept : m_value(v) {} \
+                                                      \
+    enum EnumType_ __VA_OPT__(: __VA_ARGS__)          \
 DETAIL_STRICT_ENUM_ENUMERATORS
 
 #define DETAIL_STRICT_ENUM_ENUMERATORS(...)                                                  \
-    enum EnumType_                                                                           \
     {                                                                                        \
         __VA_ARGS__                                                                          \
     };                                                                                       \
