@@ -52,13 +52,15 @@ struct NAME                                           \
     constexpr NAME() noexcept = default;              \
     constexpr NAME(auto&& v) noexcept : m_value(v) {} \
                                                       \
-    enum EnumType_ __VA_OPT__(: __VA_ARGS__)          \
+    enum class EnumType_ __VA_OPT__(: __VA_ARGS__)    \
 DETAIL_STRICT_ENUM_ENUMERATORS
 
 #define DETAIL_STRICT_ENUM_ENUMERATORS(...)                                                  \
     {                                                                                        \
         __VA_ARGS__                                                                          \
     };                                                                                       \
+                                                                                             \
+    using enum EnumType_;                                                                    \
                                                                                              \
     DETAIL_STRICT_ENUM_ALWAYS_INLINE constexpr operator EnumType_() const noexcept           \
     {                                                                                        \
