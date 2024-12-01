@@ -62,7 +62,8 @@ DETAIL_STRICT_ENUM_ENUMERATORS
                                                                                              \
     using enum EnumType_;                                                                    \
                                                                                              \
-    DETAIL_STRICT_ENUM_ALWAYS_INLINE constexpr operator EnumType_() const noexcept           \
+    DETAIL_STRICT_ENUM_ALWAYS_INLINE                                                         \
+    __VA_OPT__(constexpr) operator EnumType_() const noexcept                                \
     {                                                                                        \
         /*Tell compiler that enum value not equal to one of enumerators is unreachable*/     \
         __VA_OPT__(if(DETAIL_STRICT_ENUM_INVALID_RANGE(EnumType_, m_value, __VA_ARGS__)))    \
