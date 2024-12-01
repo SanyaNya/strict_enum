@@ -2,6 +2,7 @@
 
 #include <utility>
 #include <cassert>
+#include <type_traits>
 
 namespace detail::strict_enum
 {
@@ -36,9 +37,13 @@ struct eat_assign
 //Recursive macro
 //Check out https://www.scs.stanford.edu/~dm/blog/va-opt.html
 #define DETAIL_STRICT_ENUM_PARENS ()
-#define DETAIL_STRICT_ENUM_F_AGAIN() DETAIL_STRICT_ENUM_F
-#define DETAIL_STRICT_ENUM_F(E, VAL, ARG, ...) (VAL != DETAIL_STRICT_ENUM_EAT_ASSIGN(E, ARG)) __VA_OPT__(&& DETAIL_STRICT_ENUM_F_AGAIN DETAIL_STRICT_ENUM_PARENS(E, VAL, __VA_ARGS__))
-#define DETAIL_STRICT_ENUM_INVALID_RANGE(E, VAL, ...) DETAIL_STRICT_ENUM_RESCAN(DETAIL_STRICT_ENUM_F(E, VAL, __VA_ARGS__))
+#define DETAIL_STRICT_ENUM_INVALID_RANGE_F_AGAIN() DETAIL_STRICT_ENUM_INVALID_RANGE_F
+#define DETAIL_STRICT_ENUM_INVALID_RANGE_F(E, VAL, ARG, ...) (VAL != DETAIL_STRICT_ENUM_EAT_ASSIGN(E, ARG)) __VA_OPT__(&& DETAIL_STRICT_ENUM_INVALID_RANGE_F_AGAIN DETAIL_STRICT_ENUM_PARENS(E, VAL, __VA_ARGS__))
+#define DETAIL_STRICT_ENUM_INVALID_RANGE(E, VAL, ...) DETAIL_STRICT_ENUM_RESCAN(DETAIL_STRICT_ENUM_INVALID_RANGE_F(E, VAL, __VA_ARGS__))
+
+#define DETAIL_STRICT_ENUM_CONVERTIBLE_RANGE_F_AGAIN() DETAIL_STRICT_ENUM_CONVERTIBLE_RANGE_F
+#define DETAIL_STRICT_ENUM_CONVERTIBLE_RANGE_F(E1, E2, ARG, ...) std::to_underlying(DETAIL_STRICT_ENUM_EAT_ASSIGN(E2, ARG)) == std::to_underlying(DETAIL_STRICT_ENUM_EAT_ASSIGN(E1, ARG)); __VA_OPT__(DETAIL_STRICT_ENUM_CONVERTIBLE_RANGE_F_AGAIN DETAIL_STRICT_ENUM_PARENS(E1, E2, __VA_ARGS__))
+#define DETAIL_STRICT_ENUM_CONVERTIBLE_RANGE(E1, E2, ...) DETAIL_STRICT_ENUM_RESCAN(DETAIL_STRICT_ENUM_CONVERTIBLE_RANGE_F(E1, E2, __VA_ARGS__))
 
 #ifdef _MSC_VER
 #define DETAIL_STRICT_ENUM_ALWAYS_INLINE __forceinline
@@ -73,6 +78,21 @@ DETAIL_STRICT_ENUM_ENUMERATORS
         }                                                                                    \
                                                                                              \
         return m_value;                                                                      \
+    }                                                                                        \
+                                                                                             \
+    template<typename E> requires                                                            \
+      std::is_enum_v<E> && (!std::is_same_v<E, EnumType_>)                                   \
+      __VA_OPT__(&& requires()                                                               \
+      {                                                                                      \
+        DETAIL_STRICT_ENUM_CONVERTIBLE_RANGE(EnumType_, E, __VA_ARGS__)                      \
+      })                                                                                     \
+    DETAIL_STRICT_ENUM_ALWAYS_INLINE                                                         \
+    __VA_OPT__(constexpr) operator E() const noexcept                                        \
+    {                                                                                        \
+      return                                                                                 \
+        static_cast<E>(                                                                      \
+          static_cast<std::underlying_type_t<E>>(                                            \
+            static_cast<EnumType_>(*this)));                                                 \
     }                                                                                        \
                                                                                              \
 private:                                                                                     \
