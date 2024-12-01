@@ -65,7 +65,7 @@ DETAIL_STRICT_ENUM_ENUMERATORS
     DETAIL_STRICT_ENUM_ALWAYS_INLINE constexpr operator EnumType_() const noexcept           \
     {                                                                                        \
         /*Tell compiler that enum value not equal to one of enumerators is unreachable*/     \
-        if(DETAIL_STRICT_ENUM_INVALID_RANGE(EnumType_, m_value, __VA_ARGS__))                \
+        __VA_OPT__(if(DETAIL_STRICT_ENUM_INVALID_RANGE(EnumType_, m_value, __VA_ARGS__)))    \
         {                                                                                    \
           assert(((void)"Invalid enum value", false));                                       \
           std::unreachable();                                                                \
