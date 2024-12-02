@@ -61,7 +61,8 @@ struct NAME                                           \
     template<typename E>                              \
     explicit(!std::is_same_v<                         \
       std::remove_cvref_t<E>, EnumType_>)             \
-    constexpr NAME(E&& v) noexcept : m_value(v) {}    \
+    constexpr NAME(E&& v) noexcept :                  \
+      m_value(std::forward<E>(v)) {}                  \
                                                       \
     enum class EnumType_ __VA_OPT__(: __VA_ARGS__)    \
 DETAIL_STRICT_ENUM_ENUMERATORS
