@@ -54,8 +54,13 @@ struct eat_assign
 #define STRICT_ENUM(NAME, ...)                        \
 struct NAME                                           \
 {                                                     \
+    enum class EnumType_ __VA_OPT__(: __VA_ARGS__);   \
+                                                      \
     constexpr NAME() noexcept = default;              \
-    constexpr NAME(auto&& v) noexcept : m_value(v) {} \
+                                                      \
+    template<typename E>                              \
+    explicit(!std::is_same_v<E, EnumType_>)           \
+    constexpr NAME(E&& v) noexcept : m_value(v) {}    \
                                                       \
     enum class EnumType_ __VA_OPT__(: __VA_ARGS__)    \
 DETAIL_STRICT_ENUM_ENUMERATORS
@@ -84,7 +89,7 @@ DETAIL_STRICT_ENUM_ENUMERATORS
       std::is_enum_v<E> && (!std::is_same_v<E, EnumType_>)                                   \
       __VA_OPT__(&& DETAIL_STRICT_ENUM_CONVERTIBLE_RANGE(EnumType_, E, __VA_ARGS__))         \
     DETAIL_STRICT_ENUM_ALWAYS_INLINE                                                         \
-    __VA_OPT__(constexpr) operator E() const noexcept                                        \
+    explicit __VA_OPT__(constexpr) operator E() const noexcept                               \
     {                                                                                        \
       return                                                                                 \
         static_cast<E>(                                                                      \
