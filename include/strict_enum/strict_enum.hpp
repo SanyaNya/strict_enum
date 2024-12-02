@@ -87,6 +87,12 @@ DETAIL_STRICT_ENUM_ENUMERATORS
         return m_value_;                                                                     \
     }                                                                                        \
                                                                                              \
+    DETAIL_STRICT_ENUM_ALWAYS_INLINE explicit __VA_OPT__(constexpr)                          \
+    operator std::underlying_type_t<EnumType_>() const noexcept                              \
+    {                                                                                        \
+      return std::to_underlying(static_cast<EnumType_>(*this));                              \
+    }                                                                                        \
+                                                                                             \
     template<typename E> requires                                                            \
       std::is_enum_v<E> && (!std::is_same_v<E, EnumType_>)                                   \
       __VA_OPT__(&& DETAIL_STRICT_ENUM_CONVERTIBLE_RANGE(EnumType_, E, __VA_ARGS__))         \
