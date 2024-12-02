@@ -59,7 +59,8 @@ struct NAME                                           \
     constexpr NAME() noexcept = default;              \
                                                       \
     template<typename E>                              \
-    explicit(!std::is_same_v<E, EnumType_>)           \
+    explicit(!std::is_same_v<                         \
+      std::remove_cvref_t<E>, EnumType_>)             \
     constexpr NAME(E&& v) noexcept : m_value(v) {}    \
                                                       \
     enum class EnumType_ __VA_OPT__(: __VA_ARGS__)    \
