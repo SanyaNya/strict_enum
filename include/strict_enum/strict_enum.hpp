@@ -4,7 +4,7 @@
 #include <cassert>
 #include <type_traits>
 
-namespace detail::strict_enum
+namespace strict_enum::detail
 {
 
 template<typename E>
@@ -33,7 +33,7 @@ constexpr bool is_strict_enumerator_v = is_strict_enumerator<E>::value;
 } //nemspace detail
 
 //Convert EnumValue = expression to EnumValue
-#define DETAIL_STRICT_ENUM_EAT_ASSIGN(E, EXPR) static_cast<E>((::detail::strict_enum::eat_assign<E>)E::EXPR)
+#define DETAIL_STRICT_ENUM_EAT_ASSIGN(E, EXPR) static_cast<E>((::strict_enum::detail::eat_assign<E>)E::EXPR)
 
 //Rescan macro 256 times
 #define DETAIL_STRICT_ENUM_RESCAN(...)  DETAIL_STRICT_ENUM_RESCAN1(DETAIL_STRICT_ENUM_RESCAN1(__VA_ARGS__))
@@ -76,11 +76,11 @@ struct NAME                                                                     
                                                                                              \
     template<typename E>                                                                     \
       requires (!std::is_same_v<std::remove_cvref_t<E>, EnumType_> &&                        \
-                detail::strict_enum::is_strict_enumerator_v<E>)                              \
+                strict_enum::detail::is_strict_enumerator_v<E>)                              \
     explicit constexpr NAME(E e) noexcept                                                    \
       : m_value_(                                                                            \
           static_cast<EnumType_>(                                                            \
-            detail::strict_enum::strict_enum_from_enumerator_t<E>(e))) {}                    \
+            strict_enum::detail::strict_enum_from_enumerator_t<E>(e))) {}                    \
                                                                                              \
     enum class EnumType_ __VA_OPT__(: __VA_ARGS__)                                           \
 DETAIL_STRICT_ENUM_ENUMERATORS
@@ -125,3 +125,22 @@ DETAIL_STRICT_ENUM_ENUMERATORS
                                                                                              \
   EnumType_ m_value_;                                                                        \
 }
+
+namespace strict_enum
+{
+
+template<typename E, bool b = std::is_enum_v<E>, typename = void>
+struct underlying_type {};
+
+template<typename E>
+struct underlying_type<E, false, std::void_t<typename E::EnumType_>> :
+  std::underlying_type<typename E::EnumType_> {};
+
+template<typename E>
+struct underlying_type<E, true, void> :
+  std::underlying_type<E> {};
+
+template<typename E>
+using underlying_type_t = typename underlying_type<E>::type;
+
+} //namespace strict_enum
