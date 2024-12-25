@@ -18,6 +18,18 @@ struct eat_assign
   constexpr E operator=(auto&&) noexcept { return value; }
 };
 
+template<typename E>
+using strict_enum_from_enumerator_t = decltype(detail_strict_enum_type_by_enumerator(std::declval<E>()));
+
+template<typename E, typename = void>
+struct is_strict_enumerator : std::false_type{};
+
+template<typename E>
+struct is_strict_enumerator<E, std::void_t<strict_enum_from_enumerator_t<E>>> : std::true_type{};
+
+template<typename E>
+constexpr bool is_strict_enumerator_v = is_strict_enumerator<E>::value;
+
 } //nemspace detail
 
 //Convert EnumValue = expression to EnumValue
@@ -51,20 +63,26 @@ struct eat_assign
 #define DETAIL_STRICT_ENUM_ALWAYS_INLINE [[gnu::always_inline]] inline
 #endif
 
-#define STRICT_ENUM(NAME, ...)                        \
-struct NAME                                           \
-{                                                     \
-    enum class EnumType_ __VA_OPT__(: __VA_ARGS__);   \
-                                                      \
-    constexpr NAME() noexcept = default;              \
-                                                      \
-    template<typename E>                              \
-    explicit(!std::is_same_v<                         \
-      std::remove_cvref_t<E>, EnumType_>)             \
-    constexpr NAME(E&& v) noexcept :                  \
-      m_value_(std::forward<E>(v)) {}                 \
-                                                      \
-    enum class EnumType_ __VA_OPT__(: __VA_ARGS__)    \
+#define STRICT_ENUM(NAME, ...)                                                               \
+struct NAME                                                                                  \
+{                                                                                            \
+    enum class EnumType_ __VA_OPT__(: __VA_ARGS__);                                          \
+                                                                                             \
+    friend NAME detail_strict_enum_type_by_enumerator(EnumType_);                            \
+                                                                                             \
+    constexpr NAME() noexcept = default;                                                     \
+                                                                                             \
+    constexpr NAME(EnumType_ e) noexcept : m_value_(e) {}                                    \
+                                                                                             \
+    template<typename E>                                                                     \
+      requires (!std::is_same_v<std::remove_cvref_t<E>, EnumType_> &&                        \
+                detail::strict_enum::is_strict_enumerator_v<E>)                              \
+    explicit constexpr NAME(E e) noexcept                                                    \
+      : m_value_(                                                                            \
+          static_cast<EnumType_>(                                                            \
+            detail::strict_enum::strict_enum_from_enumerator_t<E>(e))) {}                    \
+                                                                                             \
+    enum class EnumType_ __VA_OPT__(: __VA_ARGS__)                                           \
 DETAIL_STRICT_ENUM_ENUMERATORS
 
 #define DETAIL_STRICT_ENUM_ENUMERATORS(...)                                                  \
