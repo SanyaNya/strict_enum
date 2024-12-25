@@ -105,6 +105,11 @@ using MyEnumUnderlying = strict_enum::underlying_type<MyEnum>;
 auto myenum_underlying = strict_enum::to_underlying(MyEnum::E1);
 ~~~
 
+### Limitations
+* Maximum enumerators count is 256
+* Can`t use preprocessor directives in enumerator list
+* MSVC currently ignores std::unreachable, [[assume(...)]], __builtin_assume() hints
+
 #### Requirements: C++23
 
 ## Using with cmake
