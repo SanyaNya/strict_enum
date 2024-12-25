@@ -143,4 +143,10 @@ struct underlying_type<E, true, void> :
 template<typename E>
 using underlying_type_t = typename underlying_type<E>::type;
 
+template<typename E>
+constexpr underlying_type_t<E> to_underlying(E e) noexcept
+{
+  return static_cast<underlying_type_t<E>>(e);
+}
+
 } //namespace strict_enum
