@@ -4,6 +4,7 @@
 #include <cassert>
 #include <type_traits>
 #include <hpp/foreach.hpp>
+#include <hpp/always_inline.hpp>
 
 namespace strict_enum::detail
 {
@@ -42,12 +43,6 @@ constexpr bool is_strict_enumerator_v = is_strict_enumerator<E>::value;
 #define DETAIL_STRICT_ENUM_CONVERTIBLE_RANGE_F(E1, E2, ARG) (std::to_underlying(DETAIL_STRICT_ENUM_EAT_ASSIGN(E2, ARG)) == std::to_underlying(DETAIL_STRICT_ENUM_EAT_ASSIGN(E1, ARG)))
 #define DETAIL_STRICT_ENUM_CONVERTIBLE_RANGE(E1, E2, ...) HPP_FOREACH(DETAIL_STRICT_ENUM_CONVERTIBLE_RANGE_F, HPP_SEP_LOG_AND, (E1, E2), __VA_ARGS__)
 
-#ifdef _MSC_VER
-#define DETAIL_STRICT_ENUM_ALWAYS_INLINE __forceinline
-#else
-#define DETAIL_STRICT_ENUM_ALWAYS_INLINE [[gnu::always_inline]] inline
-#endif
-
 #define STRICT_ENUM(NAME, ...)                                                               \
 struct NAME                                                                                  \
 {                                                                                            \
@@ -77,8 +72,7 @@ DETAIL_STRICT_ENUM_ENUMERATORS
                                                                                              \
     using enum EnumType_;                                                                    \
                                                                                              \
-    DETAIL_STRICT_ENUM_ALWAYS_INLINE                                                         \
-    __VA_OPT__(constexpr) operator EnumType_() const noexcept                                \
+    HPP_ALWAYS_INLINE __VA_OPT__(constexpr) operator EnumType_() const noexcept              \
     {                                                                                        \
         /*Tell compiler that enum value not equal to one of enumerators is unreachable*/     \
         __VA_OPT__(if(DETAIL_STRICT_ENUM_INVALID_RANGE(EnumType_, m_value_, __VA_ARGS__)))   \
@@ -90,7 +84,7 @@ DETAIL_STRICT_ENUM_ENUMERATORS
         return m_value_;                                                                     \
     }                                                                                        \
                                                                                              \
-    DETAIL_STRICT_ENUM_ALWAYS_INLINE explicit __VA_OPT__(constexpr)                          \
+    HPP_ALWAYS_INLINE explicit __VA_OPT__(constexpr)                                         \
     operator std::underlying_type_t<EnumType_>() const noexcept                              \
     {                                                                                        \
       return std::to_underlying(static_cast<EnumType_>(*this));                              \
@@ -99,8 +93,7 @@ DETAIL_STRICT_ENUM_ENUMERATORS
     template<typename E> requires                                                            \
       std::is_enum_v<E> && (!std::is_same_v<E, EnumType_>)                                   \
       __VA_OPT__(&& DETAIL_STRICT_ENUM_CONVERTIBLE_RANGE(EnumType_, E, __VA_ARGS__))         \
-    DETAIL_STRICT_ENUM_ALWAYS_INLINE                                                         \
-    explicit __VA_OPT__(constexpr) operator E() const noexcept                               \
+    HPP_ALWAYS_INLINE explicit __VA_OPT__(constexpr) operator E() const noexcept             \
     {                                                                                        \
       return                                                                                 \
         static_cast<E>(                                                                      \

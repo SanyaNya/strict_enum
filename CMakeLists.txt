@@ -11,7 +11,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 include(Fetch)
 
-fetch_project(hpp https://github.com/SanyaNya/hpp v1.4.0)
+fetch_project(hpp https://github.com/SanyaNya/hpp v1.5.0)
 
 add_library(strict_enum INTERFACE)
 target_link_libraries(strict_enum INTERFACE hpp)
