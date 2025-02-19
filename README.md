@@ -105,6 +105,16 @@ using MyEnumUnderlying = strict_enum::underlying_type<MyEnum>;
 auto myenum_underlying = strict_enum::to_underlying(MyEnum::E1);
 ~~~
 
+### Get number of enumerators
+~~~cpp
+STRICT_ENUM(MyEnum, std::uint8_t)
+(
+  E1, E2, E3
+);
+
+constexpr std::size_t count = MyEnum::count(); //3
+~~~
+
 ### Limitations
 * Maximum enumerators count is 256
 * Can`t use preprocessor directives in enumerator list

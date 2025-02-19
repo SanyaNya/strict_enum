@@ -5,6 +5,8 @@
 #include <type_traits>
 #include <hpp/foreach.hpp>
 #include <hpp/always_inline.hpp>
+#include <hpp/is_empty_arg.hpp>
+#include <hpp/get_arg.hpp>
 
 namespace strict_enum::detail
 {
@@ -99,6 +101,11 @@ DETAIL_STRICT_ENUM_ENUMERATORS
         static_cast<E>(                                                                      \
           static_cast<std::underlying_type_t<E>>(                                            \
             static_cast<EnumType_>(*this)));                                                 \
+    }                                                                                        \
+                                                                                             \
+    static constexpr std::size_t count() noexcept                                            \
+    {                                                                                        \
+      return HPP_COUNT(__VA_ARGS__) - HPP_IS_EMPTY_ARG(HPP_LAST_ARG(__VA_ARGS__));           \
     }                                                                                        \
                                                                                              \
   EnumType_ m_value_;                                                                        \

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(strict_enum VERSION 1.5.1)
+project(strict_enum VERSION 1.6.0)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
@@ -11,7 +11,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 include(Fetch)
 
-fetch_project(hpp https://github.com/SanyaNya/hpp v1.5.0)
+fetch_project(hpp https://github.com/SanyaNya/hpp v1.6.1)
 
 add_library(strict_enum INTERFACE)
 target_link_libraries(strict_enum INTERFACE hpp)
