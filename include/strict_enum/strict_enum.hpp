@@ -3,6 +3,7 @@
 #include <utility>
 #include <cassert>
 #include <type_traits>
+#include <array>
 #include <hpp/foreach.hpp>
 #include <hpp/always_inline.hpp>
 #include <hpp/is_empty_arg.hpp>
@@ -44,6 +45,8 @@ constexpr bool is_strict_enumerator_v = is_strict_enumerator<E>::value;
 
 #define DETAIL_STRICT_ENUM_CONVERTIBLE_RANGE_F(E1, E2, ARG) (std::to_underlying(DETAIL_STRICT_ENUM_EAT_ASSIGN(E2, ARG)) == std::to_underlying(DETAIL_STRICT_ENUM_EAT_ASSIGN(E1, ARG)))
 #define DETAIL_STRICT_ENUM_CONVERTIBLE_RANGE(E1, E2, ...) HPP_FOREACH(DETAIL_STRICT_ENUM_CONVERTIBLE_RANGE_F, HPP_SEP_LOG_AND, (E1, E2), __VA_ARGS__)
+
+#define DETAIL_STRICT_ENUM_VALUES_F(enum_type, arg) std::to_underlying(DETAIL_STRICT_ENUM_EAT_ASSIGN(enum_type, arg))
 
 #define STRICT_ENUM(NAME, ...)                                                               \
 struct NAME                                                                                  \
@@ -103,9 +106,17 @@ DETAIL_STRICT_ENUM_ENUMERATORS
             static_cast<EnumType_>(*this)));                                                 \
     }                                                                                        \
                                                                                              \
+    static constexpr std::array<                                                             \
+      std::underlying_type_t<EnumType_>,                                                     \
+      0 __VA_OPT__(+ HPP_COUNT(__VA_ARGS__) - HPP_IS_EMPTY_ARG(HPP_LAST_ARG(__VA_ARGS__)))>  \
+        values                                                                               \
+    {                                                                                        \
+      HPP_FOREACH(DETAIL_STRICT_ENUM_VALUES_F, HPP_SEP_COMMA, (EnumType_), __VA_ARGS__)      \
+    };                                                                                       \
+                                                                                             \
     static constexpr std::size_t count() noexcept                                            \
     {                                                                                        \
-      return HPP_COUNT(__VA_ARGS__) - HPP_IS_EMPTY_ARG(HPP_LAST_ARG(__VA_ARGS__));           \
+      return values.size();                                                                  \
     }                                                                                        \
                                                                                              \
   EnumType_ m_value_;                                                                        \
