@@ -145,4 +145,14 @@ constexpr underlying_type_t<E> to_underlying(E e) noexcept
   return static_cast<underlying_type_t<E>>(e);
 }
 
+template<typename E, typename = void>
+struct is_strict_enum : std::false_type{};
+
+template<typename E>
+struct is_strict_enum<E, std::void_t<typename E::EnumType_>> :
+  detail::is_strict_enumerator<typename E::EnumType_>{};
+
+template<typename E>
+constexpr bool is_strict_enum_v = is_strict_enum<E>::value;
+
 } //namespace strict_enum
