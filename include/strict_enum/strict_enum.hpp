@@ -48,6 +48,8 @@ constexpr bool is_strict_enumerator_v = is_strict_enumerator<E>::value;
 
 #define DETAIL_STRICT_ENUM_VALUES_F(enum_type, arg) std::to_underlying(DETAIL_STRICT_ENUM_EAT_ASSIGN(enum_type, arg))
 
+#define DETAIL_STRICT_ENUM_ENUMERATORS_F(enum_type, arg) DETAIL_STRICT_ENUM_EAT_ASSIGN(enum_type, arg)
+
 #define STRICT_ENUM(NAME, ...)                                                               \
 struct NAME                                                                                  \
 {                                                                                            \
@@ -112,6 +114,14 @@ DETAIL_STRICT_ENUM_ENUMERATORS
         values                                                                               \
     {                                                                                        \
       HPP_FOREACH(DETAIL_STRICT_ENUM_VALUES_F, HPP_SEP_COMMA, (EnumType_), __VA_ARGS__)      \
+    };                                                                                       \
+                                                                                             \
+    static constexpr std::array<                                                             \
+      EnumType_,                                                                             \
+      0 __VA_OPT__(+ HPP_COUNT(__VA_ARGS__) - HPP_IS_EMPTY_ARG(HPP_LAST_ARG(__VA_ARGS__)))>  \
+        enumerators                                                                          \
+    {                                                                                        \
+      HPP_FOREACH(DETAIL_STRICT_ENUM_ENUMERATORS_F, HPP_SEP_COMMA, (EnumType_), __VA_ARGS__) \
     };                                                                                       \
                                                                                              \
     static constexpr std::size_t count() noexcept                                            \

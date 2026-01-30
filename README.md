@@ -105,14 +105,17 @@ using MyEnumUnderlying = strict_enum::underlying_type<MyEnum>;
 auto myenum_underlying = strict_enum::to_underlying(MyEnum::E1);
 ~~~
 
-### Get number of enumerators
+### Get enumerators array
+You can get array of enumerators or its values
 ~~~cpp
 STRICT_ENUM(MyEnum, std::uint8_t)
 (
   E1, E2, E3
 );
 
-constexpr std::size_t count = MyEnum::count(); //3
+static_assert(MyEnum::enumerators[0] == MyEnum::E1);
+static_assert(MyEnum::values[0] == 0);
+static_assert(MyEnum::count() == 3);
 ~~~
 
 ### Limitations
