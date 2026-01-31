@@ -79,6 +79,15 @@ DETAIL_STRICT_ENUM_ENUMERATORS
                                                                                              \
     using enum EnumType_;                                                                    \
                                                                                              \
+    constexpr bool is_valid() const noexcept                                                 \
+    {                                                                                        \
+      __VA_OPT__(if(DETAIL_STRICT_ENUM_INVALID_RANGE(EnumType_, m_value_, __VA_ARGS__)))     \
+      {                                                                                      \
+        return false;                                                                        \
+      }                                                                                      \
+      return true;                                                                           \
+    }                                                                                        \
+                                                                                             \
     HPP_ALWAYS_INLINE __VA_OPT__(constexpr) operator EnumType_() const noexcept              \
     {                                                                                        \
         /*Tell compiler that enum value not equal to one of enumerators is unreachable*/     \
@@ -164,5 +173,38 @@ struct is_strict_enum<E, std::void_t<typename E::EnumType_>> :
 
 template<typename E>
 constexpr bool is_strict_enum_v = is_strict_enum<E>::value;
+
+namespace detail
+{
+
+template<typename E, typename Visitor, std::size_t... Is>
+constexpr bool visitor_noexcept_h(std::index_sequence<Is...>) noexcept
+{
+  return (... && noexcept(std::declval<Visitor>()(std::integral_constant<E, E::enumerators[Is]>{})));
+}
+
+template<typename E, typename Visitor>
+constexpr bool visitor_noexcept_v =
+  detail::visitor_noexcept_h<E, Visitor>(std::make_index_sequence<E::count()>{});
+
+template<typename E, typename Visitor, std::size_t I = 0>
+HPP_ALWAYS_INLINE constexpr auto visit_impl(E e, Visitor&& visitor)
+{
+  if(e == E::enumerators[I])
+    return visitor(std::integral_constant<E, E::enumerators[I]>{});
+
+  if constexpr(I+1 != E::count())
+    return visit_impl<E, Visitor, I+1>(e, std::forward<Visitor>(visitor));
+}
+
+} //namespace detail
+
+template<typename E, typename Visitor> requires is_strict_enum_v<E>
+constexpr auto visit(E e, Visitor&& visitor)
+  noexcept(detail::visitor_noexcept_v<E, Visitor>)
+{
+  assert(((void)"Invalid strict enum", e.is_valid()));
+  return detail::visit_impl<E, Visitor>(e, std::forward<Visitor>(visitor));
+}
 
 } //namespace strict_enum

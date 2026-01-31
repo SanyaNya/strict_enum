@@ -118,6 +118,41 @@ static_assert(MyEnum::values[0] == 0);
 static_assert(MyEnum::count() == 3);
 ~~~
 
+### Visit and validation
+~~~cpp
+STRICT_ENUM(PacketType, std::uint8_t)
+(
+  Packet1,
+  Packet2
+);
+
+template<PacketType>
+struct Packet;
+
+// packet definitions...
+
+template<std::size_t... Is>
+constexpr auto packet_variant_h(std::index_sequence<Is...>) ->
+  std::variant<Packet<PacketType::enumerators[Is]>...>;
+
+using PacketVariant_t =
+  decltype(packet_variant_h(std::make_index_sequence<PacketType::count()>{}));
+
+PacketVariant_t read(std::ifstream& stream)
+{
+  PacketType type;
+  stream.read(reinterpret_cast<char*>(&type), sizeof(type));
+  if(!type.is_valid()) throw std::runtime_error("Invalid packet type");
+
+  return strict_enum::visit(type, [](auto e)
+  {
+    Packet<e()> packet;
+    stream.read(reinterpret_cast<char*>(&packet), sizeof(packet));
+    return packet;
+  });
+}
+~~~
+
 ### Limitations
 * Maximum enumerators count is 256
 * Can`t use preprocessor directives in enumerator list
@@ -132,7 +167,7 @@ include(FetchContent)
 FetchContent_Declare(
   strict_enum
   GIT_REPOSITORY https://github.com/SanyaNya/strict_enum
-  GIT_TAG v1.5.0)
+  GIT_TAG v1.11.0)
 
 FetchContent_MakeAvailable(strict_enum)
 
